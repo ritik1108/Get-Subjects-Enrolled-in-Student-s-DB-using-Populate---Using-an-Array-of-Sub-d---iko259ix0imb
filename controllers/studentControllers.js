@@ -46,6 +46,28 @@ const addSubjectToStudent = async (req, res) => {
 
     try {
         //Write your Code Here
+        
+        const student = await Student.findOne({ roll });
+        const subject = await Subject.findOne({ subjectCode });
+
+        if (!student) {
+            res.status(404).json({ message: 'Student not found' });
+            return;
+        }
+
+        if (!subject) {
+            res.status(404).json({ message: 'Subject not found' });
+            return;
+        }
+
+        if (student.subjects.includes(subject._id)) {
+            res.status(409).json({ message: 'Student already enrolled in the subject' });
+            return;
+        }
+
+        student.subjects.push(subject._id);
+        await student.save();
+        
         res.status(200).json({ message: 'Subject added to student successfully' });
     } catch (error) {
         console.error(error);
@@ -90,6 +112,13 @@ const getStudentSubjects = async (req, res) => {
     const { roll } = req.body;
     try {
         //Write your Code Here
+        const student = await Student.findOne({ roll }).populate('subjects');
+
+        if (!student) {
+            res.status(404).json({ message: 'Student not found' });
+            return;
+        }
+        
         res.status(200).json({ subjects: student.subjects });
     } catch (error) {
         console.error(error);
@@ -99,4 +128,3 @@ const getStudentSubjects = async (req, res) => {
 
 
 module.exports = { getAllStudents, addSubjectToStudent, getStudentSubjects };
-
